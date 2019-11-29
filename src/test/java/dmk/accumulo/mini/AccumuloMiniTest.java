@@ -5,6 +5,7 @@ import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
+import org.apache.accumulo.minicluster.MiniAccumuloConfig;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 
+import static com.facebook.presto.accumulo.MiniAccumuloConfigUtil.setConfigClassPath;
 import static org.junit.Assert.assertTrue;
 
 public class AccumuloMiniTest {
@@ -28,6 +30,9 @@ public class AccumuloMiniTest {
         Path tmpPath = Files.createTempDirectory("miniaccumulo");
         File tmpDir = tmpPath.toFile();
         accumulo = new MiniAccumuloCluster(tmpDir, "password");
+        MiniAccumuloConfig config = accumulo.getConfig();
+        // If Java 9+ then fix the classpath!
+        setConfigClassPath(config);
         accumulo.start();
         logger.info("mini accumulo started");
         passwd = new PasswordToken("password");
