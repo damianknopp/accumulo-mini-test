@@ -21,7 +21,7 @@
     </build>
 
     <properties>
-        <accumulo.version>1.9.3</accumulo.version>
+        <accumulo.version>1.7.0</accumulo.version>
     </properties>
 
     <dependencies>
