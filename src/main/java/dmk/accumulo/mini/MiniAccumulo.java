@@ -36,8 +36,9 @@ public class MiniAccumulo {
     protected void spinup() throws IOException, InterruptedException {
         File tempDir = Files.createTempDir();
         tempDir.deleteOnExit();
-        accumulo = new MiniAccumuloCluster(tempDir, "secret");
-//        accumulo.getConfig().setZooKeeperPort(2181);
+        MiniAccumuloConfig mac = new MiniAccumuloConfig(tempDir, "secret");
+        mac.setZooKeeperPort(2181);
+        accumulo = new MiniAccumuloCluster(mac);
         MiniAccumuloConfig config = accumulo.getConfig();
         // If Java 9+ then fix the classpath!
         setConfigClassPath(config);
@@ -49,18 +50,21 @@ public class MiniAccumulo {
         logger.info("cluster running with instance name " + accumulo.getInstanceName()
                 + " and zookeepers " + accumulo.getZooKeepers());
         logger.info("hit Ctl-C to shutdown ...");
+        Timer stayAliveTimer = new Timer();
+        stayAliveTimer.schedule(new KeepAliveTimerTask(), 5 * 1000, 60 * 1000);
         Thread shutdown = new Thread(() -> {
            try {
                logger.info("interrupt received, killing server...");
                accumulo.stop();
+               stayAliveTimer.purge();
+               stayAliveTimer.cancel();
                System.exit(1);
            } catch (Exception e) {
                e.printStackTrace();
            }
         });
         Runtime.getRuntime().addShutdownHook(shutdown);
-        Timer stayAliveTimer = new Timer();
-        stayAliveTimer.schedule(new KeepAliveTimerTask(), 5 * 1000, 60 * 1000);
+
     }
 
     private static class KeepAliveTimerTask extends TimerTask {
